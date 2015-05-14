@@ -9,28 +9,8 @@ checkout:
 
 dependencies:
   override:
-    # If there's a base image cached, load it. A click on CircleCI's "Clear
-    # Cache" will make sure we start with a clean slate.
-    - |
-      cachedir="${GOPATH%%:*}/pkg/cache"
-      if [[ ! -e "${cachedir}/builder.tar" ]]; then
-        docker pull "cockroachdb/builder" && docker save "cockroachdb/builder" > "${cachedir}/builder.tar"
-      else
-      	docker load -i "${cachedir}/builder.tar"
-      fi
-    - HOME= go get -d -u github.com/cockroachdb/build-cache
-    - HOME= go get -u github.com/robfig/glock
-    - grep -v '^cmd' GLOCKFILE | glock sync -n
-    # Pretend we're already bootstrapped, so that `make` doesn't try to get us
-    # started which is impossible without a working Go env.
-    - touch .bootstrap && make '.git/hooks/*'
-    - build/circle-build.sh go install github.com/cockroachdb/build-cache
-    - build/circle-build.sh build-cache restore .
-    - build/circle-build.sh make test
-    - build/circle-build.sh build-cache save .
-  post:
-    - rm -f ~/docker/{base,dnsmasq}.tar
+    - build/circle-deps.sh
 
 test:
   override:
-    - echo hello
+    - build/circle-test.sh
