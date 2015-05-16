@@ -427,10 +427,17 @@ func (r *Range) SetDesc(desc *proto.RangeDescriptor) {
 	atomic.StorePointer(&r.desc, unsafe.Pointer(desc))
 }
 
+// GetReplicaOptional returns the replica for this range from the range descriptor.
+// Returns nil when no replica is found.
+func (r *Range) GetReplicaOptional() *proto.Replica {
+	_, replica := r.Desc().FindReplica(r.rm.StoreID())
+	return replica
+}
+
 // GetReplica returns the replica for this range from the range descriptor.
 // A fatal error occurs if the replica is not found.
 func (r *Range) GetReplica() *proto.Replica {
-	_, replica := r.Desc().FindReplica(r.rm.StoreID())
+	replica := r.GetReplicaOptional();
 	if replica == nil {
 		log.Fatalf("own replica missing in range at store %d", r.rm.StoreID())
 	}

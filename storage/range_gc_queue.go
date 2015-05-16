@@ -101,7 +101,10 @@ func (q *rangeGCQueue) process(now proto.Timestamp, rng *Range) error {
 	desc := reply.Ranges[0]
 
 	currentMember := false
-	me := rng.GetReplica()
+	me := rng.GetReplicaOptional()
+	if me == nil {
+		return util.Errorf("no replica found for range %s", rng)
+	}
 	for _, rep := range desc.Replicas {
 		if rep.StoreID == me.StoreID {
 			currentMember = true
